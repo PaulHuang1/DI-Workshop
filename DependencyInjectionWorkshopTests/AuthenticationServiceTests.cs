@@ -104,8 +104,9 @@ namespace DependencyInjectionWorkshopTests
 
             var authenticationService = new AuthenticationService(_failedCounter, _logger, _otp, _profile, _hash);
             var notificationDecorator = new NotificationDecorator(authenticationService, _notification);
+            var failedCounterDecorator = new FailedCounterDecorator(notificationDecorator, _failedCounter);
 
-            _authentication = notificationDecorator;
+            _authentication = failedCounterDecorator;
         }
 
         private static void ShouldBeInvalid(bool isValid)

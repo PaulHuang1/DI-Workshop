@@ -27,8 +27,6 @@ namespace DependencyInjectionWorkshop.Models
 
         public bool Verify(string account, string password, string otp)
         {
-            _failedCounter.CheckAccountIsLocked(account);
-
             var originPassword = _profile.GetPassword(account);
 
             var hashedPassword = _hash.GetHash(password);
@@ -37,12 +35,8 @@ namespace DependencyInjectionWorkshop.Models
 
             if (originPassword == hashedPassword && otp == currentOtp)
             {
-                _failedCounter.Reset(account);
-
                 return true;
             }
-
-            _failedCounter.Add(account);
 
             var failedCount = _failedCounter.Get(account);
 
