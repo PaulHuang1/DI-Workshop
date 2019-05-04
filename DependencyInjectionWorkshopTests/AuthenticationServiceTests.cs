@@ -1,4 +1,5 @@
 ﻿using DependencyInjectionWorkshop.Adapters;
+using DependencyInjectionWorkshop.Exceptions;
 using DependencyInjectionWorkshop.Models;
 using DependencyInjectionWorkshop.Repositories;
 using NSubstitute;
@@ -82,6 +83,27 @@ namespace DependencyInjectionWorkshopTests
         {
             WhenValid();
             ShouldResetFailedCounter();
+        }
+
+        [Test]
+        public void add_failed_count_when_invalid()
+        {
+            WhenInvalid();
+            ShouldAddFailedCount();
+        }
+
+        [Test]
+        public void account_is_locked()
+        {
+            _failedCounter.CheckAccountIsLocked(DefaultAccountId).ReturnsForAnyArgs(true);
+
+            TestDelegate action = () => _authenticationService.Verify(DefaultAccountId, DefaultPassword, DefaultOtp);
+            Assert.Throws<FailedTooManyTimesException>(action);
+        }
+
+        private void ShouldAddFailedCount()
+        {
+            _failedCounter.ReceivedWithAnyArgs(1).Add(DefaultAccountId);
         }
 
         private void ShouldResetFailedCounter()

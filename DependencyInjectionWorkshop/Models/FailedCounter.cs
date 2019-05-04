@@ -9,7 +9,7 @@ namespace DependencyInjectionWorkshop.Models
         void Reset(string accountId);
         void Add(string accountId);
         int Get(string accountId);
-        void CheckAccountIsLocked(string accountId);
+        bool CheckAccountIsLocked(string accountId);
     }
 
     public class FailedCounter : IFailedCounter
@@ -39,15 +39,13 @@ namespace DependencyInjectionWorkshop.Models
             return failedCount;
         }
 
-        public void CheckAccountIsLocked(string accountId)
+        public bool CheckAccountIsLocked(string accountId)
         {
             var isLockedResponse = new HttpClient() {BaseAddress = new Uri("http://joey.dev/")}
                 .PostAsJsonAsync("api/failedCounter/IsLocked", accountId).Result;
             isLockedResponse.EnsureSuccessStatusCode();
-            if (isLockedResponse.Content.ReadAsAsync<bool>().Result)
-            {
-                throw new FailedTooManyTimesException();
-            }
+            var isLocked = isLockedResponse.Content.ReadAsAsync<bool>().Result;
+            return isLocked;
         }
     }
 }
