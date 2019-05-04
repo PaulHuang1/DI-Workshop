@@ -1,5 +1,6 @@
 ﻿using DependencyInjectionWorkshop.Adapters;
 using DependencyInjectionWorkshop.Apis;
+using DependencyInjectionWorkshop.Decorators;
 using DependencyInjectionWorkshop.Exceptions;
 using DependencyInjectionWorkshop.Models;
 using DependencyInjectionWorkshop.Repositories;
@@ -16,7 +17,7 @@ namespace DependencyInjectionWorkshopTests
         private const string DefaultHashedPassword = "my hashed password";
         private const string DefaultOtp = "123456";
         private const string DefaultPassword = "pw";
-        private AuthenticationService _authenticationService;
+        private IAuthentication _authentication;
         private IFailedCounter _failedCounter;
         private IHash _hash;
         private ILogger _logger;
@@ -101,7 +102,10 @@ namespace DependencyInjectionWorkshopTests
             _otp = Substitute.For<IOtp>();
             _notification = Substitute.For<INotification>();
 
-            _authenticationService = new AuthenticationService(_failedCounter, _logger, _otp, _profile, _hash, _notification);
+            var authenticationService = new AuthenticationService(_failedCounter, _logger, _otp, _profile, _hash);
+            var notificationDecorator = new NotificationDecorator(authenticationService, _notification);
+
+            _authentication = notificationDecorator;
         }
 
         private static void ShouldBeInvalid(bool isValid)
@@ -162,7 +166,7 @@ namespace DependencyInjectionWorkshopTests
 
         private bool WhenVerify(string account, string password, string otp)
         {
-            return _authenticationService.Verify(account, password, otp);
+            return _authentication.Verify(account, password, otp);
         }
     }
 }

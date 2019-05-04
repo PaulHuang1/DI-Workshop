@@ -4,12 +4,11 @@ using DependencyInjectionWorkshop.Repositories;
 
 namespace DependencyInjectionWorkshop.Models
 {
-    public class AuthenticationService
+    public class AuthenticationService : IAuthentication
     {
         private readonly IFailedCounter _failedCounter;
         private readonly IHash _hash;
         private readonly ILogger _logger;
-        private readonly INotification _notification;
         private readonly IOtp _otp;
         private readonly IProfile _profile;
 
@@ -17,15 +16,13 @@ namespace DependencyInjectionWorkshop.Models
             IFailedCounter failedCounter,
             ILogger logger, IOtp otp,
             IProfile profile,
-            IHash hash,
-            INotification notification)
+            IHash hash)
         {
             _failedCounter = failedCounter;
             _logger = logger;
             _otp = otp;
             _profile = profile;
             _hash = hash;
-            _notification = notification;
         }
 
         public bool Verify(string account, string password, string otp)
@@ -50,8 +47,6 @@ namespace DependencyInjectionWorkshop.Models
             var failedCount = _failedCounter.Get(account);
 
             _logger.Info($"account: {account} verify failed! failed count: {failedCount}");
-
-            _notification.PushMessage($"account: {account} verify failed.");
 
             return false;
         }
