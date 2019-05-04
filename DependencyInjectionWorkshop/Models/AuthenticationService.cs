@@ -28,16 +28,6 @@ namespace DependencyInjectionWorkshop.Models
             _notification = notification;
         }
 
-        public AuthenticationService()
-        {
-            _failedCounter = new FailedCounterApi();
-            _hash = new SHA256Adapter();
-            _logger = new NLoggerAdapter();
-            _notification = new SlackAdapter();
-            _otp = new OtpApi();
-            _profile = new ProfileRepository();
-        }
-
         public bool Verify(string account, string password, string otp)
         {
             _failedCounter.CheckAccountIsLocked(account);
