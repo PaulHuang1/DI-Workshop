@@ -46,6 +46,13 @@ namespace DependencyInjectionWorkshopTests
             ShouldBeValid(isValid);
         }
 
+        [Test]
+        public void notify_user_when_verify_invalid()
+        {
+            WhenInvalid();
+            ShouldBeNotifyUser();
+        }
+
         [SetUp]
         public void Setup()
         {
@@ -67,6 +74,11 @@ namespace DependencyInjectionWorkshopTests
         private static void ShouldBeValid(bool isValid)
         {
             Assert.IsTrue(isValid);
+        }
+
+        private void ShouldBeNotifyUser()
+        {
+            _notification.Received(1).PushMessage(Arg.Any<string>());
         }
 
         private bool WhenInvalid()
