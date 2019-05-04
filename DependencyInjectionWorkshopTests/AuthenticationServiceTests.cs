@@ -65,6 +65,19 @@ namespace DependencyInjectionWorkshopTests
             ShouldBeNotifyUser();
         }
 
+        [Test]
+        public void reset_failed_count_when_valid()
+        {
+            WhenValid();
+
+            ShouldBeResetFailedCount();
+        }
+
+        private void ShouldBeResetFailedCount()
+        {
+            _failedCounter.Received(1).Reset(Arg.Any<string>());
+        }
+
         [SetUp]
         public void Setup()
         {
@@ -126,6 +139,16 @@ namespace DependencyInjectionWorkshopTests
             GivenOtp(DefaultAccount, DefaultOtp);
 
             WhenVerify(DefaultAccount, DefaultPassword, "wrong otp");
+        }
+
+        private bool WhenValid()
+        {
+            GivenPassword(DefaultAccount, DefaultHashedPassword);
+            GivenHash(DefaultPassword, DefaultHashedPassword);
+            GivenOtp(DefaultAccount, DefaultOtp);
+
+            var isValid = WhenVerify(DefaultAccount, DefaultPassword, DefaultOtp);
+            return isValid;
         }
 
         private bool WhenVerify(string account, string password, string otp)
