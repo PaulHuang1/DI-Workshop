@@ -28,12 +28,7 @@ namespace DependencyInjectionWorkshop.Models
 
             var currentOtp = _otp.GetOtp(account);
 
-            if (originPassword == hashedPassword && otp == currentOtp)
-            {
-                return true;
-            }
-
-            return false;
+            return originPassword == hashedPassword && otp == currentOtp;
         }
     }
 }
