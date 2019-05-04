@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using Dapper;
+using SlackAPI;
 
 namespace DependencyInjectionWorkshop.Models
 {
@@ -42,8 +43,15 @@ namespace DependencyInjectionWorkshop.Models
                 ? response.Content.ReadAsAsync<string>().Result
                 : throw new Exception($"web api error, accountId:{account}");
 
-            return profilePassword == hashPassword &&
-                   otp == currentOtp;
+            if (profilePassword != hashPassword || otp != currentOtp)
+            {
+                var message = $"account:{account} verify failed";
+                var slackClient = new SlackClient("my api token");
+                slackClient.PostMessage(resp => { }, "my channel", message, "my bot name");
+                return false;
+            }
+
+            return true;
         }
     }
 }
