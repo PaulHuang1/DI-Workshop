@@ -12,43 +12,54 @@ namespace DependencyInjectionWorkshop.Models
 {
     public class AuthenticationService
     {
+        private readonly FailedCounterApiService _failedCounterApiService = new FailedCounterApiService();
+        private readonly NLogAdapter _nLogAdapter = new NLogAdapter();
+        private readonly OtpApiService _otpApiService = new OtpApiService();
+        private readonly ProfileRepository _profileRepository = new ProfileRepository();
+        private readonly SHA256Adapter _sha256Adapter = new SHA256Adapter();
+        private readonly SlackAdapter _slackAdapter = new SlackAdapter();
+
         public bool Verify(string account, string password, string otp)
         {
-            CheckAccountIsLocked(account);
+            _failedCounterApiService.CheckAccountIsLocked(account);
 
-            var passwordFromDb = GetPasswordFromDb(account);
+            var passwordFromDb = _profileRepository.GetPasswordFromDb(account);
 
-            var hashPassword = GetHashPassword(password);
+            var hashPassword = _sha256Adapter.GetHashPassword(password);
 
-            var currentOtp = GetCurrentOtp(account);
+            var currentOtp = _otpApiService.GetCurrentOtp(account);
 
             if (passwordFromDb == hashPassword && otp == currentOtp)
             {
-                ResetFailedCount(account);
+                _failedCounterApiService.ResetFailedCount(account);
 
                 return true;
             }
 
-            AddFailedCount(account);
+            _failedCounterApiService.AddFailedCount(account);
 
-            var failedCount = GetFailedCount(account);
+            var failedCount = _failedCounterApiService.GetFailedCount(account);
+            _nLogAdapter.LogFailedCount($"account:{account} verify failed! Current failed times is {failedCount}");
 
-            LogFailedCount($"account:{account} verify failed! Current failed times is {failedCount}");
-
-            Notify($"account:{account} verify failed");
+            _slackAdapter.Notify($"account:{account} verify failed");
 
             return false;
         }
+    }
 
-        private static void AddFailedCount(string account)
+    public class FailedCounterApiService
+    {
+        public void AddFailedCount(string account)
         {
-            var response = new HttpClient { BaseAddress = new Uri("http://joey.dev/") }.PostAsJsonAsync("api/failedCounter/Add", account).Result;
+            var response = new HttpClient { BaseAddress = new Uri("http://joey.dev/") }
+                .PostAsJsonAsync("api/failedCounter/Add", account).Result;
             response.EnsureSuccessStatusCode();
         }
 
-        private static void CheckAccountIsLocked(string account)
+        public void CheckAccountIsLocked(string account)
         {
-            var response = new HttpClient { BaseAddress = new Uri("http://joey.dev/") }.PostAsJsonAsync("api/failedCounter/IsLocked", account).Result;
+            var response = new HttpClient { BaseAddress = new Uri("http://joey.dev/") }
+                .PostAsJsonAsync("api/failedCounter/IsLocked", account).Result;
             response.EnsureSuccessStatusCode();
             var isLocked = response.Content.ReadAsAsync<bool>().Result;
             if (isLocked)
@@ -57,38 +68,52 @@ namespace DependencyInjectionWorkshop.Models
             }
         }
 
-        private static string GetCurrentOtp(string account)
+        public int GetFailedCount(string account)
         {
-            var response = new HttpClient { BaseAddress = new Uri("http://joey.dev/") }.PostAsJsonAsync("api/otps", account).Result;
-            var currentOtp = response.IsSuccessStatusCode
-                ? response.Content.ReadAsAsync<string>().Result
-                : throw new Exception($"Get OTP web api error, accountId:{account}");
-            return currentOtp;
-        }
-
-        private static int GetFailedCount(string account)
-        {
-            var response = new HttpClient { BaseAddress = new Uri("http://joey.dev/") }.PostAsJsonAsync("api/failedCounter/GetFailedCount", account).Result;
+            var response = new HttpClient { BaseAddress = new Uri("http://joey.dev/") }
+                .PostAsJsonAsync("api/failedCounter/GetFailedCount", account).Result;
             response.EnsureSuccessStatusCode();
             var failedCount = response.Content.ReadAsAsync<int>().Result;
             return failedCount;
         }
 
-        private static string GetHashPassword(string password)
+        public void ResetFailedCount(string account)
         {
-            var crypt = new SHA256Managed();
-            var hash = new StringBuilder();
-            var crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(password));
-            foreach (var theByes in crypto)
-            {
-                hash.Append(theByes.ToString("x2"));
-            }
-
-            var hashPassword = hash.ToString();
-            return hashPassword;
+            var response = new HttpClient { BaseAddress = new Uri("http://joey.dev/") }
+                .PostAsJsonAsync("api/failedCounter/Reset", account).Result;
+            response.EnsureSuccessStatusCode();
         }
+    }
 
-        private static string GetPasswordFromDb(string account)
+    public class FailedTooManyTimeException : Exception
+    {
+    }
+
+    public class NLogAdapter
+    {
+        public void LogFailedCount(string message)
+        {
+            var logger = NLog.LogManager.GetCurrentClassLogger();
+            logger.Info(message);
+        }
+    }
+
+    public class OtpApiService
+    {
+        public string GetCurrentOtp(string account)
+        {
+            var response = new HttpClient { BaseAddress = new Uri("http://joey.dev/") }
+                .PostAsJsonAsync("api/otps", account).Result;
+            var currentOtp = response.IsSuccessStatusCode
+                ? response.Content.ReadAsAsync<string>().Result
+                : throw new Exception($"Get OTP web api error, accountId:{account}");
+            return currentOtp;
+        }
+    }
+
+    public class ProfileRepository
+    {
+        public string GetPasswordFromDb(string account)
         {
             string profilePassword;
             var connectionString = "my connection string";
@@ -102,27 +127,31 @@ namespace DependencyInjectionWorkshop.Models
 
             return profilePassword;
         }
+    }
 
-        private static void LogFailedCount(string message)
+    public class SHA256Adapter
+    {
+        public string GetHashPassword(string password)
         {
-            var logger = NLog.LogManager.GetCurrentClassLogger();
-            logger.Info(message);
-        }
+            var crypt = new SHA256Managed();
+            var hash = new StringBuilder();
+            var crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(password));
+            foreach (var theByes in crypto)
+            {
+                hash.Append(theByes.ToString("x2"));
+            }
 
-        private static void Notify(string message)
+            var hashPassword = hash.ToString();
+            return hashPassword;
+        }
+    }
+
+    public class SlackAdapter
+    {
+        public void Notify(string message)
         {
             var slackClient = new SlackClient("my api token");
             slackClient.PostMessage(resp => { }, "my channel", message, "my bot name");
         }
-
-        private static void ResetFailedCount(string account)
-        {
-            var response = new HttpClient { BaseAddress = new Uri("http://joey.dev/") }.PostAsJsonAsync("api/failedCounter/Reset", account).Result;
-            response.EnsureSuccessStatusCode();
-        }
-    }
-
-    public class FailedTooManyTimeException : Exception
-    {
     }
 }
