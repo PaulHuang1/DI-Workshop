@@ -46,6 +46,14 @@ namespace DependencyInjectionWorkshopTests
             ShouldBeValid(isValid);
         }
 
+        [Test]
+        public void notify_user_when_invalid()
+        {
+            WhenInvalid();
+
+            ShouldBeNotifyUser();
+        }
+
         [SetUp]
         public void Setup()
         {
@@ -82,6 +90,20 @@ namespace DependencyInjectionWorkshopTests
         private void GivenPassword(string account, string hashedPassword)
         {
             _profile.GetPassword(account).ReturnsForAnyArgs(hashedPassword);
+        }
+
+        private void ShouldBeNotifyUser()
+        {
+            _notification.Received(1).PushMessage(Arg.Any<string>());
+        }
+
+        private void WhenInvalid()
+        {
+            GivenPassword(DefaultAccount, DefaultHashedPassword);
+            GivenHash(DefaultPassword, DefaultHashedPassword);
+            GivenOtp(DefaultAccount, DefaultOtp);
+
+            WhenVerify(DefaultAccount, DefaultPassword, "wrong otp");
         }
 
         private bool WhenVerify(string account, string password, string otp)
