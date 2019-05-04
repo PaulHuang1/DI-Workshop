@@ -6,15 +6,17 @@ namespace DependencyInjectionWorkshop.Apis
 {
     public class FailedCounterApi
     {
+        private readonly HttpClient _httpClient = new HttpClient { BaseAddress = new Uri("http://joey.dev") };
+
         public void AddFailedCount(string account)
         {
-            var addFailedResponse = new HttpClient { BaseAddress = new Uri("http://joey.dev") }.PostAsJsonAsync("api/FailedCounter/Add", account).Result;
+            var addFailedResponse = _httpClient.PostAsJsonAsync("api/FailedCounter/Add", account).Result;
             addFailedResponse.EnsureSuccessStatusCode();
         }
 
         public void CheckAccountIsLocked(string account)
         {
-            var isLockedResponse = new HttpClient { BaseAddress = new Uri("http://joey.dev") }.PostAsJsonAsync("api/FailedCounter/IsLocked", account).Result;
+            var isLockedResponse = _httpClient.PostAsJsonAsync("api/FailedCounter/IsLocked", account).Result;
             isLockedResponse.EnsureSuccessStatusCode();
             var isLocked = isLockedResponse.Content.ReadAsAsync<bool>().Result;
             if (isLocked)
@@ -25,7 +27,7 @@ namespace DependencyInjectionWorkshop.Apis
 
         public int GetFailedCount(string account)
         {
-            var failedCountResponse = new HttpClient { BaseAddress = new Uri("http://joey.dev") }.PostAsJsonAsync("api/FailedCounter/Get", account).Result;
+            var failedCountResponse = _httpClient.PostAsJsonAsync("api/FailedCounter/Get", account).Result;
             failedCountResponse.EnsureSuccessStatusCode();
             var failedCount = failedCountResponse.Content.ReadAsAsync<int>().Result;
             return failedCount;
@@ -33,7 +35,7 @@ namespace DependencyInjectionWorkshop.Apis
 
         public void ResetFailedCount(string account)
         {
-            var resetResponse = new HttpClient { BaseAddress = new Uri("http://joey.dev") }.PostAsJsonAsync("api/FailedCounter/Reset", account).Result;
+            var resetResponse = _httpClient.PostAsJsonAsync("api/FailedCounter/Reset", account).Result;
             resetResponse.EnsureSuccessStatusCode();
         }
     }
