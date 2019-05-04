@@ -4,7 +4,7 @@
     {
         void Add(string account);
 
-        void CheckAccountIsLocked(string account);
+        bool CheckAccountIsLocked(string account);
 
         int Get(string account);
 
