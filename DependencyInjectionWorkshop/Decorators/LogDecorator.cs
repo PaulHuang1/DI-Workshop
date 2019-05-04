@@ -4,9 +4,8 @@ using DependencyInjectionWorkshop.Models;
 
 namespace DependencyInjectionWorkshop.Decorators
 {
-    public class LogDecorator : IAuthentication
+    public class LogDecorator : AuthenticationBaseDecorator
     {
-        private readonly IAuthentication _authentication;
         private readonly IFailedCounter _failedCounter;
         private readonly ILogger _logger;
 
@@ -14,15 +13,15 @@ namespace DependencyInjectionWorkshop.Decorators
             IAuthentication authentication,
             ILogger logger,
             IFailedCounter failedCounter)
+            : base(authentication)
         {
-            _authentication = authentication;
             _logger = logger;
             _failedCounter = failedCounter;
         }
 
-        public bool Verify(string account, string password, string otp)
+        public override bool Verify(string account, string password, string otp)
         {
-            var isValid = _authentication.Verify(account, password, otp);
+            var isValid = base.Verify(account, password, otp);
 
             if (isValid)
             {
