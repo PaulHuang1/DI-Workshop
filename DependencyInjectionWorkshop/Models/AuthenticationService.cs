@@ -49,16 +49,18 @@ namespace DependencyInjectionWorkshop.Models
 
     public class FailedCounterApiService
     {
+        private readonly HttpClient _httpClient = new HttpClient { BaseAddress = new Uri("http://joey.dev/") };
+
         public void AddFailedCount(string account)
         {
-            var response = new HttpClient { BaseAddress = new Uri("http://joey.dev/") }
+            var response = _httpClient
                 .PostAsJsonAsync("api/failedCounter/Add", account).Result;
             response.EnsureSuccessStatusCode();
         }
 
         public void CheckAccountIsLocked(string account)
         {
-            var response = new HttpClient { BaseAddress = new Uri("http://joey.dev/") }
+            var response = _httpClient
                 .PostAsJsonAsync("api/failedCounter/IsLocked", account).Result;
             response.EnsureSuccessStatusCode();
             var isLocked = response.Content.ReadAsAsync<bool>().Result;
@@ -70,7 +72,7 @@ namespace DependencyInjectionWorkshop.Models
 
         public int GetFailedCount(string account)
         {
-            var response = new HttpClient { BaseAddress = new Uri("http://joey.dev/") }
+            var response = _httpClient
                 .PostAsJsonAsync("api/failedCounter/GetFailedCount", account).Result;
             response.EnsureSuccessStatusCode();
             var failedCount = response.Content.ReadAsAsync<int>().Result;
@@ -79,7 +81,7 @@ namespace DependencyInjectionWorkshop.Models
 
         public void ResetFailedCount(string account)
         {
-            var response = new HttpClient { BaseAddress = new Uri("http://joey.dev/") }
+            var response = _httpClient
                 .PostAsJsonAsync("api/failedCounter/Reset", account).Result;
             response.EnsureSuccessStatusCode();
         }
@@ -100,9 +102,11 @@ namespace DependencyInjectionWorkshop.Models
 
     public class OtpApiService
     {
+        private readonly HttpClient _httpClient = new HttpClient { BaseAddress = new Uri("http://joey.dev/") };
+
         public string GetCurrentOtp(string account)
         {
-            var response = new HttpClient { BaseAddress = new Uri("http://joey.dev/") }
+            var response = _httpClient
                 .PostAsJsonAsync("api/otps", account).Result;
             var currentOtp = response.IsSuccessStatusCode
                 ? response.Content.ReadAsAsync<string>().Result
