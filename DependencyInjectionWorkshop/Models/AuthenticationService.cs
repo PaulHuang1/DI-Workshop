@@ -6,20 +6,15 @@ namespace DependencyInjectionWorkshop.Models
 {
     public class AuthenticationService : IAuthentication
     {
-        private readonly IFailedCounter _failedCounter;
         private readonly IHash _hash;
-        private readonly ILogger _logger;
         private readonly IOtp _otp;
         private readonly IProfile _profile;
 
         public AuthenticationService(
-            IFailedCounter failedCounter,
-            ILogger logger, IOtp otp,
+            IOtp otp,
             IProfile profile,
             IHash hash)
         {
-            _failedCounter = failedCounter;
-            _logger = logger;
             _otp = otp;
             _profile = profile;
             _hash = hash;
@@ -37,10 +32,6 @@ namespace DependencyInjectionWorkshop.Models
             {
                 return true;
             }
-
-            var failedCount = _failedCounter.Get(account);
-
-            _logger.Info($"account: {account} verify failed! failed count: {failedCount}");
 
             return false;
         }

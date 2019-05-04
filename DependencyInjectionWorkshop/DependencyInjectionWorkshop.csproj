@@ -86,6 +86,7 @@
     <Compile Include="Apis\IOtp.cs" />
     <Compile Include="Apis\OtpApi.cs" />
     <Compile Include="Decorators\FailedCounterDecorator.cs" />
+    <Compile Include="Decorators\LogDecorator.cs" />
     <Compile Include="Decorators\NotificationDecorator.cs" />
     <Compile Include="Exceptions\FailedTooManyTimesException.cs" />
     <Compile Include="Models\AuthenticationService.cs" />
