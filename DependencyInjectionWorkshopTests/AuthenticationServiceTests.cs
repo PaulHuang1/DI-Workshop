@@ -24,6 +24,14 @@ namespace DependencyInjectionWorkshopTests
         private IProfile _profile;
 
         [Test]
+        public void add_failed_count_when_invalid()
+        {
+            WhenInvalid();
+
+            ShouldBeAddFailedCount();
+        }
+
+        [Test]
         public void is_invalid_when_wrong_otp()
         {
             GivenPassword(DefaultAccount, DefaultHashedPassword);
@@ -71,11 +79,6 @@ namespace DependencyInjectionWorkshopTests
             WhenValid();
 
             ShouldBeResetFailedCount();
-        }
-
-        private void ShouldBeResetFailedCount()
-        {
-            _failedCounter.Received(1).Reset(Arg.Any<string>());
         }
 
         [SetUp]
@@ -127,11 +130,20 @@ namespace DependencyInjectionWorkshopTests
                                                          m.Contains(failedCount.ToString())));
         }
 
+        private void ShouldBeAddFailedCount()
+        {
+            _failedCounter.Received(1).Add(DefaultAccount);
+        }
+
         private void ShouldBeNotifyUser()
         {
             _notification.Received(1).PushMessage(Arg.Any<string>());
         }
 
+        private void ShouldBeResetFailedCount()
+        {
+            _failedCounter.Received(1).Reset(Arg.Any<string>());
+        }
         private void WhenInvalid()
         {
             GivenPassword(DefaultAccount, DefaultHashedPassword);
