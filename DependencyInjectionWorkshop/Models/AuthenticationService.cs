@@ -13,6 +13,9 @@ namespace DependencyInjectionWorkshop.Models
     {
         public bool Verify(string accountId, string password, string otp)
         {
+            var httpClient = new HttpClient() {BaseAddress = new Uri("http://joey.dev/")};
+            //var isLockedResponse = httpClient.PostAsJsonAsync("api/failedCounter/IsLocked", accountId).Result;
+
             string passwordFormDb;
             using (var connection = new SqlConnection("my connection string"))
             {
@@ -32,7 +35,6 @@ namespace DependencyInjectionWorkshop.Models
 
             var hashedPassword = hash.ToString();
 
-            var httpClient = new HttpClient() {BaseAddress = new Uri("http://joey.com/")};
             var response = httpClient.PostAsJsonAsync("api/otps", accountId).Result;
             string currentOtp;
             if (response.IsSuccessStatusCode)
@@ -46,10 +48,16 @@ namespace DependencyInjectionWorkshop.Models
 
             if (hashedPassword == passwordFormDb && otp == currentOtp)
             {
+                var resetResponse = httpClient.PostAsJsonAsync("api/failedCounter/Reset", accountId).Result;
+                resetResponse.EnsureSuccessStatusCode();
+
                 return true;
             }
             else
-            { 
+            {
+                var addFailedCountResponse = httpClient.PostAsJsonAsync("api/failedCounter/Add", accountId).Result;
+                addFailedCountResponse.EnsureSuccessStatusCode();
+
                 string message = $"accountId:{accountId} verify failed";
                 var slackClient = new SlackClient("my api token");
                 slackClient.PostMessage(r => { }, "my channel", message, "my bot name");
