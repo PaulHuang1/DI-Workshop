@@ -14,6 +14,19 @@ namespace DependencyInjectionWorkshop.Models
     {
         public bool Verify(string account, string password, string otp)
         {
+            var otpApiUri = new Uri("http://joey.dev/");
+            var httpClient = new HttpClient
+            {
+                BaseAddress = otpApiUri
+            };
+            var response = httpClient.PostAsJsonAsync("api/failedCounter/IsLocked", account).Result;
+            response.EnsureSuccessStatusCode();
+            var isLocked = response.Content.ReadAsAsync<bool>().Result;
+            if (isLocked)
+            {
+                throw new FailedTooManyTimeException();
+            }
+
             string profilePassword;
             var connectionString = "my connection string";
             var spName = "spGetUserPassword";
@@ -33,15 +46,10 @@ namespace DependencyInjectionWorkshop.Models
             }
             var hashPassword = hash.ToString();
 
-            var otpApiUri = new Uri("http://joey.dev/");
-            var httpClient = new HttpClient
-            {
-                BaseAddress = otpApiUri
-            };
-            var response = httpClient.PostAsJsonAsync("api/otps", account).Result;
+            response = httpClient.PostAsJsonAsync("api/otps", account).Result;
             var currentOtp = response.IsSuccessStatusCode
                 ? response.Content.ReadAsAsync<string>().Result
-                : throw new Exception($"web api error, accountId:{account}");
+                : throw new Exception($"Get OTP web api error, accountId:{account}");
 
             if (profilePassword == hashPassword && otp == currentOtp)
             {
@@ -60,5 +68,9 @@ namespace DependencyInjectionWorkshop.Models
 
             return false;
         }
+    }
+
+    public class FailedTooManyTimeException : Exception
+    {
     }
 }
