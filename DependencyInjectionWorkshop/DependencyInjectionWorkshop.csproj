@@ -75,6 +75,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Adapters\ILogger.cs" />
     <Compile Include="Adapters\NLogAdapter.cs" />
     <Compile Include="Adapters\Sha256Adapter.cs" />
     <Compile Include="Adapters\SlackAdapter.cs" />

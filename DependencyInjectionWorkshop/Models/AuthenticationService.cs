@@ -9,29 +9,29 @@ namespace DependencyInjectionWorkshop.Models
         private readonly IProfile _profile;
         private readonly IHash _hash;
         private readonly IOtp _otpService;
-        private readonly ILogger _nLogAdapter;
-        private readonly INotification _slackAdapter;
+        private readonly ILogger _logger;
+        private readonly INotification _notification;
 
-        public AuthenticationService(IFailedCounter failedCounter, IProfile profile, IHash hash,
-            IOtp otpService, ILogger nLogAdapter, INotification slackAdapter)
+        public AuthenticationService(IFailedCounter failedCounter, IProfile profile, IHash hash, IOtp otpService,
+            ILogger logger, INotification notification)
         {
             _failedCounter = failedCounter;
             _profile = profile;
             _hash = hash;
             _otpService = otpService;
-            _nLogAdapter = nLogAdapter;
-            _slackAdapter = slackAdapter;
+            _logger = logger;
+            _notification = notification;
         }
 
-        public AuthenticationService()
-        {
-            _failedCounter = new FailedCounter();
-            _profile = new ProfileRepo();
-            _hash = new Sha256Adapter();
-            _otpService = new OtpService();
-            _nLogAdapter = new NLogAdapter();
-            _slackAdapter = new SlackAdapter();
-        }
+        //public AuthenticationService()
+        //{
+        //    _failedCounter = new FailedCounter();
+        //    _profile = new ProfileRepo();
+        //    _hash = new Sha256Adapter();
+        //    _otpService = new OtpService();
+        //    _nLogAdapter = new NLogAdapter();
+        //    _slackAdapter = new SlackAdapter();
+        //}
 
         public bool Verify(string accountId, string password, string otp)
         {
@@ -54,9 +54,9 @@ namespace DependencyInjectionWorkshop.Models
                 _failedCounter.Add(accountId);
 
                 var failedCount = _failedCounter.Get(accountId);
-                _nLogAdapter.Info($"accountId:{accountId} failed times:{failedCount}");
+                _logger.Info($"accountId:{accountId} failed times:{failedCount}");
 
-                _slackAdapter.PushMessage($"accountId:{accountId} verify failed");
+                _notification.PushMessage($"accountId:{accountId} verify failed");
 
                 return false;
             }
