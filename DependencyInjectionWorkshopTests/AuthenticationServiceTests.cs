@@ -26,6 +26,16 @@ namespace DependencyInjectionWorkshopTests
         private IProfile _profile;
 
         [Test]
+        public void account_is_locked()
+        {
+            _failedCounter.CheckAccountIsLocked(DefaultAccount).ReturnsForAnyArgs(true);
+
+            TestDelegate action = () => _authentication.Verify(DefaultAccount, DefaultPassword, DefaultOtp);
+
+            Assert.Throws<FailedTooManyTimeException>(action);
+        }
+
+        [Test]
         public void add_failed_count_when_invalid()
         {
             WhenInvalid();
@@ -83,16 +93,6 @@ namespace DependencyInjectionWorkshopTests
             ShouldBeResetFailedCount();
         }
 
-        [Test]
-        public void account_is_locked()
-        {
-            _failedCounter.CheckAccountIsLocked(DefaultAccount).ReturnsForAnyArgs(true);
-
-            TestDelegate action = () => _authentication.Verify(DefaultAccount, DefaultPassword, DefaultOtp);
-
-            Assert.Throws<FailedTooManyTimeException>(action);
-        }
-
         [SetUp]
         public void Setup()
         {
@@ -105,8 +105,9 @@ namespace DependencyInjectionWorkshopTests
 
             var authenticationService = new AuthenticationService(_failedCounter, _logger, _otp, _profile, _hash);
             var notificationDecorator = new NotificationDecorator(authenticationService, _notification);
+            var failedCounterDecorator = new FailedCounterDecorator(notificationDecorator, _failedCounter);
 
-            _authentication = notificationDecorator;
+            _authentication = failedCounterDecorator;
         }
 
         private static void ShouldBeInvalid(bool isValid)

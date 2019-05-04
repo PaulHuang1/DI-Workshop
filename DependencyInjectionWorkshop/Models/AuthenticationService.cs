@@ -1,6 +1,5 @@
 ﻿using DependencyInjectionWorkshop.Adapters;
 using DependencyInjectionWorkshop.ApiServices;
-using DependencyInjectionWorkshop.Exceptions;
 using DependencyInjectionWorkshop.Repositories;
 
 namespace DependencyInjectionWorkshop.Models
@@ -29,11 +28,6 @@ namespace DependencyInjectionWorkshop.Models
 
         public bool Verify(string account, string password, string otp)
         {
-            if (_failedCounter.CheckAccountIsLocked(account))
-            {
-                throw new FailedTooManyTimeException();
-            }
-
             var passwordFromDb = _profile.GetPassword(account);
 
             var hashPassword = _hash.GetHash(password);
@@ -42,12 +36,8 @@ namespace DependencyInjectionWorkshop.Models
 
             if (passwordFromDb == hashPassword && otp == currentOtp)
             {
-                _failedCounter.Reset(account);
-
                 return true;
             }
-
-            _failedCounter.Add(account);
 
             var failedCount = _failedCounter.Get(account);
             _logger.Info($"account:{account} verify failed! Current failed times is {failedCount}");

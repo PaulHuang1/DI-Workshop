@@ -3,7 +3,7 @@ using DependencyInjectionWorkshop.Models;
 
 namespace DependencyInjectionWorkshop.Decorators
 {
-    public class NotificationDecorator: IAuthentication
+    public class NotificationDecorator : IAuthentication
     {
         private readonly IAuthentication _authentication;
         private readonly INotification _notification;
