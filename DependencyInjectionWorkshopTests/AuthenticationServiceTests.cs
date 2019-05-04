@@ -15,7 +15,7 @@ namespace DependencyInjectionWorkshopTests
         private const string DefaultPassword = "pw";
         private const string DefaultOtp = "123456";
         private const int DefaultFailedCount = 91;
-        private AuthenticationService _authenticationService;
+        private IAuthentication _authentication;
         private IFailedCounter _failedCounter;
         private IHash _hash;
         private ILogger _logger;
@@ -33,8 +33,11 @@ namespace DependencyInjectionWorkshopTests
             _failedCounter = Substitute.For<IFailedCounter>();
             _logger = Substitute.For<ILogger>();
 
-            _authenticationService =
-                new AuthenticationService(_failedCounter, _profile, _hash, _otpService, _logger, _notification);
+            var authenticationService =
+                new AuthenticationService(_failedCounter, _profile, _hash, _otpService, _logger);
+
+            _authentication = new NotificationDecorator(authenticationService, _notification);
+            //_authenticationService = new AuthenticationService(_failedCounter, _profile, _hash, _otpService, _logger, _notification);
         }
 
         [Test]
@@ -97,18 +100,8 @@ namespace DependencyInjectionWorkshopTests
         {
             _failedCounter.CheckAccountIsLocked(DefaultAccountId).ReturnsForAnyArgs(true);
 
-            TestDelegate action = () => _authenticationService.Verify(DefaultAccountId, DefaultPassword, DefaultOtp);
+            TestDelegate action = () => _authentication.Verify(DefaultAccountId, DefaultPassword, DefaultOtp);
             Assert.Throws<FailedTooManyTimesException>(action);
-        }
-
-        private void ShouldAddFailedCount()
-        {
-            _failedCounter.ReceivedWithAnyArgs(1).Add(DefaultAccountId);
-        }
-
-        private void ShouldResetFailedCounter()
-        {
-            _failedCounter.Received(1).Reset(Arg.Any<string>());
         }
 
         private static void ShouldBeInvalid(bool isValid)
@@ -119,6 +112,16 @@ namespace DependencyInjectionWorkshopTests
         private static void ShouldBeValid(bool isValid)
         {
             Assert.IsTrue(isValid);
+        }
+
+        private void ShouldAddFailedCount()
+        {
+            _failedCounter.ReceivedWithAnyArgs(1).Add(DefaultAccountId);
+        }
+
+        private void ShouldResetFailedCounter()
+        {
+            _failedCounter.Received(1).Reset(Arg.Any<string>());
         }
 
         private void LogShouldContains(string accountId, int failedCount)
@@ -157,7 +160,7 @@ namespace DependencyInjectionWorkshopTests
 
         private bool WhenVerify(string accountId, string password, string otp)
         {
-            return _authenticationService.Verify(accountId, password, otp);
+            return _authentication.Verify(accountId, password, otp);
         }
 
         private void GivenOtp(string accountId, string otp)
