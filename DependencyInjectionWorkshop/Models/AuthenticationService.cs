@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using DependencyInjectionWorkshop.Adapters;
+using DependencyInjectionWorkshop.Apis;
 using DependencyInjectionWorkshop.Exceptions;
 using DependencyInjectionWorkshop.Repositories;
 using NLog;
@@ -10,6 +11,7 @@ namespace DependencyInjectionWorkshop.Models
 {
     public class AuthenticationService
     {
+        private readonly OtpApi _otpApi = new OtpApi();
         private readonly ProfileRepository _profileRepository = new ProfileRepository();
         private readonly SHA256Adapter _sha256Adapter = new SHA256Adapter();
 
@@ -21,7 +23,7 @@ namespace DependencyInjectionWorkshop.Models
 
             var hashedPassword = _sha256Adapter.GetHashedPassword(password);
 
-            var currentOtp = GetCurrentOtp(account);
+            var currentOtp = _otpApi.GetCurrentOtp(account);
 
             if (passwordFromDb == hashedPassword && otp == currentOtp)
             {
@@ -56,14 +58,6 @@ namespace DependencyInjectionWorkshop.Models
             {
                 throw new FailedTooManyTimesException();
             }
-        }
-
-        private static string GetCurrentOtp(string account)
-        {
-            var response = new HttpClient { BaseAddress = new Uri("http://joey.dev") }.PostAsJsonAsync("api/otps", account).Result;
-            response.EnsureSuccessStatusCode();
-            var currentOtp = response.Content.ReadAsAsync<string>().Result;
-            return currentOtp;
         }
 
         private static int GetFailedCount(string account)

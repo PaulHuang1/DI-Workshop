@@ -76,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Adapters\SHA256Adapter.cs" />
+    <Compile Include="Apis\OtpApi.cs" />
     <Compile Include="Exceptions\FailedTooManyTimesException.cs" />
     <Compile Include="Models\AuthenticationService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
