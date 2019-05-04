@@ -2,9 +2,9 @@
 
 namespace DependencyInjectionWorkshop.Adapters
 {
-    public class NLoggerAdapter
+    public class NLoggerAdapter : ILogger
     {
-        public void LogInfo(string message)
+        public void Info(string message)
         {
             var logger = LogManager.GetCurrentClassLogger();
             logger.Info(message);

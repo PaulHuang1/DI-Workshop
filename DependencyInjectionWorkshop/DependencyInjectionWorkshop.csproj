@@ -75,14 +75,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Adapters\IHash.cs" />
+    <Compile Include="Adapters\ILogger.cs" />
+    <Compile Include="Adapters\INotification.cs" />
     <Compile Include="Adapters\NLoggerAdapter.cs" />
     <Compile Include="Adapters\SHA256Adapter.cs" />
     <Compile Include="Adapters\SlackAdapter.cs" />
     <Compile Include="Apis\FailedCounterApi.cs" />
+    <Compile Include="Apis\IFailedCounter.cs" />
+    <Compile Include="Apis\IOtp.cs" />
     <Compile Include="Apis\OtpApi.cs" />
     <Compile Include="Exceptions\FailedTooManyTimesException.cs" />
     <Compile Include="Models\AuthenticationService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repositories\IProfile.cs" />
     <Compile Include="Repositories\ProfileRepository.cs" />
   </ItemGroup>
   <ItemGroup>
