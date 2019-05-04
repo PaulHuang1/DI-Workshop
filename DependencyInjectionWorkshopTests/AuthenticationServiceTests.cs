@@ -23,6 +23,18 @@ namespace DependencyInjectionWorkshopTests
         private IProfile _profile;
 
         [Test]
+        public void is_invalid_when_wrong_otp()
+        {
+            GivenPassword(DefaultAccount, DefaultHashedPassword);
+            GivenHash(DefaultPassword, DefaultHashedPassword);
+            GivenOtp(DefaultAccount, DefaultOtp);
+
+            var isValid = WhenVerify(DefaultAccount, DefaultPassword, "wrong otp");
+
+            ShouldBeInvalid(isValid);
+        }
+
+        [Test]
         public void is_valid()
         {
             GivenPassword(DefaultAccount, DefaultHashedPassword);
@@ -45,6 +57,11 @@ namespace DependencyInjectionWorkshopTests
             _logger = Substitute.For<ILogger>();
 
             _authenticationService = new AuthenticationService(_failedCounter, _logger, _otp, _profile, _hash, _notification);
+        }
+
+        private static void ShouldBeInvalid(bool isValid)
+        {
+            Assert.IsFalse(isValid);
         }
 
         private static void ShouldBeValid(bool isValid)
