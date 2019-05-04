@@ -13,13 +13,13 @@ namespace DependencyInjectionWorkshopTests
         private const string DefaultHashedPassword = "my hashed password";
         private const string DefaultPassword = "pw";
         private const string DefaultOtp = "123456";
-        private IProfile _profile;
-        private IOtp _otpService;
-        private IHash _hash;
-        private INotification _notification;
-        private IFailedCounter _failedCounter;
-        private ILogger _logger;
         private AuthenticationService _authenticationService;
+        private IFailedCounter _failedCounter;
+        private IHash _hash;
+        private ILogger _logger;
+        private INotification _notification;
+        private IOtp _otpService;
+        private IProfile _profile;
 
         [SetUp]
         public void Setup()
@@ -47,9 +47,57 @@ namespace DependencyInjectionWorkshopTests
             ShouldBeValid(isValid);
         }
 
+        [Test]
+        public void is_invalid_when_wrong_otp()
+        {
+            GivenPassword(DefaultAccountId, DefaultHashedPassword);
+            GivenHash(DefaultPassword, DefaultHashedPassword);
+            GivenOtp(DefaultAccountId, DefaultOtp);
+
+            var isValid = WhenVerify(DefaultAccountId, DefaultPassword, "wrong otp");
+
+            ShouldBeInvalid(isValid);
+        }
+
+        [Test]
+        public void notify_user_when_invalid()
+        {
+            WhenInvalid();
+            ShouldNotifyUser();
+        }
+
+        private static void ShouldBeInvalid(bool isValid)
+        {
+            Assert.IsFalse(isValid);
+        }
+
         private static void ShouldBeValid(bool isValid)
         {
             Assert.IsTrue(isValid);
+        }
+
+        private bool WhenValid()
+        {
+            GivenPassword(DefaultAccountId, DefaultHashedPassword);
+            GivenHash(DefaultPassword, DefaultHashedPassword);
+            GivenOtp(DefaultAccountId, DefaultOtp);
+
+            var isValid = WhenVerify(DefaultAccountId, DefaultPassword, DefaultOtp);
+            return isValid;
+        }
+
+        private bool WhenInvalid()
+        {
+            GivenPassword(DefaultAccountId, DefaultHashedPassword);
+            GivenHash(DefaultPassword, DefaultHashedPassword);
+            GivenOtp(DefaultAccountId, DefaultOtp);
+
+            return WhenVerify(DefaultAccountId, DefaultPassword, "wrong otp");
+        }
+
+        private void ShouldNotifyUser()
+        {
+            _notification.Received(1).PushMessage(Arg.Any<string>());
         }
 
         private bool WhenVerify(string accountId, string password, string otp)
