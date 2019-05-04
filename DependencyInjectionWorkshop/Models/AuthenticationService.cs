@@ -29,15 +29,15 @@ namespace DependencyInjectionWorkshop.Models
             _notification = notification;
         }
 
-        public AuthenticationService()
-        {
-            _failedCounter = new FailedCounter();
-            _profile = new ProfileRepository();
-            _hash = new SHA256Adapter();
-            _otp = new OtpApiService();
-            _logger = new NLogAdapter();
-            _notification = new SlackAdapter();
-        }
+        //public AuthenticationService()
+        //{
+        //    _failedCounter = new FailedCounter();
+        //    _profile = new ProfileRepository();
+        //    _hash = new SHA256Adapter();
+        //    _otp = new OtpApiService();
+        //    _logger = new NLogAdapter();
+        //    _notification = new SlackAdapter();
+        //}
 
         public bool Verify(string account, string password, string otp)
         {
