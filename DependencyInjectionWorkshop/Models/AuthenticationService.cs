@@ -66,6 +66,12 @@ namespace DependencyInjectionWorkshop.Models
             response = httpClient.PostAsJsonAsync("api/failedCounter/Add", account).Result;
             response.EnsureSuccessStatusCode();
 
+            response = httpClient.PostAsJsonAsync("api/failedCounter/GetFailedCount", account).Result;
+            response.EnsureSuccessStatusCode();
+            var failedCount = response.Content.ReadAsAsync<int>().Result;
+            var logger = NLog.LogManager.GetCurrentClassLogger();
+            logger.Info($"account:{account} verify failed! Current failed times is {failedCount}");
+
             return false;
         }
     }
