@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
-using Dapper;
 using DependencyInjectionWorkshop.Exceptions;
+using DependencyInjectionWorkshop.Repositories;
 using NLog;
 using SlackAPI;
 
@@ -14,11 +11,13 @@ namespace DependencyInjectionWorkshop.Models
 {
     public class AuthenticationService
     {
+        private readonly ProfileRepository _profileRepository = new ProfileRepository();
+
         public bool Verify(string account, string password, string otp)
         {
             CheckAccountIsLocked(account);
 
-            var passwordFromDb = GetPasswordFromDb(account);
+            var passwordFromDb = _profileRepository.GetPasswordFromDb(account);
 
             var hashedPassword = GetHashedPassword(password);
 
@@ -91,20 +90,6 @@ namespace DependencyInjectionWorkshop.Models
             }
 
             return hashedPassword;
-        }
-
-        private static string GetPasswordFromDb(string account)
-        {
-            string passwordFromDb;
-            using (var connection = new SqlConnection("my connection string"))
-            {
-                passwordFromDb = connection.Query<string>("spGetUserPassword",
-                        new { Account = account },
-                        commandType: CommandType.StoredProcedure)
-                    .SingleOrDefault();
-            }
-
-            return passwordFromDb;
         }
 
         private static void LogInfo(string message)
