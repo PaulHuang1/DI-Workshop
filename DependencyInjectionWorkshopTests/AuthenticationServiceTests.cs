@@ -64,6 +64,13 @@ namespace DependencyInjectionWorkshopTests
             ShouldBeNotifyUser();
         }
 
+        [Test]
+        public void reset_failed_count_when_verify_valid()
+        {
+            WhenValid();
+            ShouldBeResetFailedCount();
+        }
+
         [SetUp]
         public void Setup()
         {
@@ -101,6 +108,11 @@ namespace DependencyInjectionWorkshopTests
         private void ShouldBeNotifyUser()
         {
             _notification.Received(1).PushMessage(Arg.Any<string>());
+        }
+
+        private void ShouldBeResetFailedCount()
+        {
+            _failedCounter.Received(1).Reset(DefaultAccount);
         }
 
         private bool WhenInvalid()
