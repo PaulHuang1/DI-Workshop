@@ -76,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Adapters\SHA256Adapter.cs" />
+    <Compile Include="Adapters\SlackAdapter.cs" />
     <Compile Include="Apis\FailedCounterApi.cs" />
     <Compile Include="Apis\OtpApi.cs" />
     <Compile Include="Exceptions\FailedTooManyTimesException.cs" />

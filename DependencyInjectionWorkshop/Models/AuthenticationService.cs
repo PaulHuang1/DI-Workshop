@@ -2,7 +2,6 @@
 using DependencyInjectionWorkshop.Apis;
 using DependencyInjectionWorkshop.Repositories;
 using NLog;
-using SlackAPI;
 
 namespace DependencyInjectionWorkshop.Models
 {
@@ -12,6 +11,7 @@ namespace DependencyInjectionWorkshop.Models
         private readonly OtpApi _otpApi = new OtpApi();
         private readonly ProfileRepository _profileRepository = new ProfileRepository();
         private readonly SHA256Adapter _sha256Adapter = new SHA256Adapter();
+        private readonly SlackAdapter _slackAdapter = new SlackAdapter();
 
         public bool Verify(string account, string password, string otp)
         {
@@ -36,7 +36,7 @@ namespace DependencyInjectionWorkshop.Models
 
             LogInfo($"account: {account} verify failed! failed count: {failedCount}");
 
-            Notify($"account: {account} verify failed.");
+            _slackAdapter.Notify($"account: {account} verify failed.");
 
             return false;
         }
@@ -45,12 +45,6 @@ namespace DependencyInjectionWorkshop.Models
         {
             var logger = LogManager.GetCurrentClassLogger();
             logger.Info(message);
-        }
-
-        private static void Notify(string message)
-        {
-            var slackClient = new SlackClient("my token");
-            slackClient.PostMessage(resp => { }, "my channel", message, "my bot name");
         }
     }
 }
