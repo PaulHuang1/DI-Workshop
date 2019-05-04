@@ -1,8 +1,8 @@
 ﻿namespace DependencyInjectionWorkshop.Adapters
 {
-    public class NLogAdapter
+    public class NLogAdapter : ILogger
     {
-        public void LogFailedCount(string message)
+        public void Info(string message)
         {
             var logger = NLog.LogManager.GetCurrentClassLogger();
             logger.Info(message);

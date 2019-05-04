@@ -3,9 +3,9 @@ using System.Text;
 
 namespace DependencyInjectionWorkshop.Adapters
 {
-    public class SHA256Adapter
+    public class SHA256Adapter : IHash
     {
-        public string GetHashPassword(string password)
+        public string GetHash(string password)
         {
             var crypt = new SHA256Managed();
             var hash = new StringBuilder();

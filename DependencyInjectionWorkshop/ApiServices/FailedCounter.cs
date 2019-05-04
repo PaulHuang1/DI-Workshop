@@ -4,11 +4,11 @@ using DependencyInjectionWorkshop.Exceptions;
 
 namespace DependencyInjectionWorkshop.ApiServices
 {
-    public class FailedCounterApiService
+    public class FailedCounter : IFailedCounter
     {
         private readonly HttpClient _httpClient = new HttpClient { BaseAddress = new Uri("http://joey.dev/") };
 
-        public void AddFailedCount(string account)
+        public void Add(string account)
         {
             var response = _httpClient
                 .PostAsJsonAsync("api/failedCounter/Add", account).Result;
@@ -27,7 +27,7 @@ namespace DependencyInjectionWorkshop.ApiServices
             }
         }
 
-        public int GetFailedCount(string account)
+        public int Get(string account)
         {
             var response = _httpClient
                 .PostAsJsonAsync("api/failedCounter/GetFailedCount", account).Result;
@@ -36,7 +36,7 @@ namespace DependencyInjectionWorkshop.ApiServices
             return failedCount;
         }
 
-        public void ResetFailedCount(string account)
+        public void Reset(string account)
         {
             var response = _httpClient
                 .PostAsJsonAsync("api/failedCounter/Reset", account).Result;
