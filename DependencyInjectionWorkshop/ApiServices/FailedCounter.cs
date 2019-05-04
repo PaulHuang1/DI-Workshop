@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net.Http;
-using DependencyInjectionWorkshop.Exceptions;
 
 namespace DependencyInjectionWorkshop.ApiServices
 {

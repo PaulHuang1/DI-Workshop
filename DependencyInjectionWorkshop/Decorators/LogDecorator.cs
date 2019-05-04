@@ -1,41 +1,37 @@
-﻿using DependencyInjectionWorkshop.ApiServices;
-using DependencyInjectionWorkshop.Exceptions;
+﻿using DependencyInjectionWorkshop.Adapters;
+using DependencyInjectionWorkshop.ApiServices;
 using DependencyInjectionWorkshop.Models;
 
 namespace DependencyInjectionWorkshop.Decorators
 {
-    public class FailedCounterDecorator : IAuthentication
+    public class LogDecorator : IAuthentication
     {
         private readonly IAuthentication _authentication;
         private readonly IFailedCounter _failedCounter;
+        private readonly ILogger _logger;
 
-        public FailedCounterDecorator(
+        public LogDecorator(
             IAuthentication authentication,
+            ILogger logger,
             IFailedCounter failedCounter)
         {
             _authentication = authentication;
+            _logger = logger;
             _failedCounter = failedCounter;
         }
 
         public bool Verify(string account, string password, string otp)
         {
-            if (_failedCounter.CheckAccountIsLocked(account))
-            {
-                throw new FailedTooManyTimeException();
-            }
-
             var isValid = _authentication.Verify(account, password, otp);
 
             if (isValid)
             {
-                _failedCounter.Reset(account);
-            }
-            else
-            {
-                _failedCounter.Add(account);
+                return true;
             }
 
-            return isValid;
+            var failedCount = _failedCounter.Get(account);
+            _logger.Info($"account:{account} verify failed! Current failed times is {failedCount}");
+            return false;
         }
     }
 }

@@ -103,11 +103,12 @@ namespace DependencyInjectionWorkshopTests
             _failedCounter = Substitute.For<IFailedCounter>();
             _logger = Substitute.For<ILogger>();
 
-            var authenticationService = new AuthenticationService(_failedCounter, _logger, _otp, _profile, _hash);
+            var authenticationService = new AuthenticationService(_otp, _profile, _hash);
             var notificationDecorator = new NotificationDecorator(authenticationService, _notification);
             var failedCounterDecorator = new FailedCounterDecorator(notificationDecorator, _failedCounter);
+            var logDecorator = new LogDecorator(failedCounterDecorator, _logger, _failedCounter);
 
-            _authentication = failedCounterDecorator;
+            _authentication = logDecorator;
         }
 
         private static void ShouldBeInvalid(bool isValid)
