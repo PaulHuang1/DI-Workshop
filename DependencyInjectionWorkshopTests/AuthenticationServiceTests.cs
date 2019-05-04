@@ -1,5 +1,6 @@
 ﻿using DependencyInjectionWorkshop.Adapters;
 using DependencyInjectionWorkshop.Apis;
+using DependencyInjectionWorkshop.Exceptions;
 using DependencyInjectionWorkshop.Models;
 using DependencyInjectionWorkshop.Repositories;
 using NSubstitute;
@@ -22,6 +23,18 @@ namespace DependencyInjectionWorkshopTests
         private INotification _notification;
         private IOtp _otp;
         private IProfile _profile;
+
+        [Test]
+        public void account_is_locked()
+        {
+            _failedCounter
+                .When(call => call.CheckAccountIsLocked(DefaultAccount))
+                .Do(call => throw new FailedTooManyTimesException());
+
+            TestDelegate action = () => WhenVerify(DefaultAccount, DefaultPassword, DefaultOtp);
+
+            Assert.Throws<FailedTooManyTimesException>(action);
+        }
 
         [Test]
         public void add_failed_count_when_verify_invalid()
