@@ -1,12 +1,6 @@
-﻿using System;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Net.Http;
-using System.Security.Cryptography;
-using System.Text;
-using Dapper;
-using SlackAPI;
+﻿using DependencyInjectionWorkshop.Adapters;
+using DependencyInjectionWorkshop.ApiServices;
+using DependencyInjectionWorkshop.Repositories;
 
 namespace DependencyInjectionWorkshop.Models
 {
@@ -44,118 +38,6 @@ namespace DependencyInjectionWorkshop.Models
             _slackAdapter.Notify($"account:{account} verify failed");
 
             return false;
-        }
-    }
-
-    public class FailedCounterApiService
-    {
-        private readonly HttpClient _httpClient = new HttpClient { BaseAddress = new Uri("http://joey.dev/") };
-
-        public void AddFailedCount(string account)
-        {
-            var response = _httpClient
-                .PostAsJsonAsync("api/failedCounter/Add", account).Result;
-            response.EnsureSuccessStatusCode();
-        }
-
-        public void CheckAccountIsLocked(string account)
-        {
-            var response = _httpClient
-                .PostAsJsonAsync("api/failedCounter/IsLocked", account).Result;
-            response.EnsureSuccessStatusCode();
-            var isLocked = response.Content.ReadAsAsync<bool>().Result;
-            if (isLocked)
-            {
-                throw new FailedTooManyTimeException();
-            }
-        }
-
-        public int GetFailedCount(string account)
-        {
-            var response = _httpClient
-                .PostAsJsonAsync("api/failedCounter/GetFailedCount", account).Result;
-            response.EnsureSuccessStatusCode();
-            var failedCount = response.Content.ReadAsAsync<int>().Result;
-            return failedCount;
-        }
-
-        public void ResetFailedCount(string account)
-        {
-            var response = _httpClient
-                .PostAsJsonAsync("api/failedCounter/Reset", account).Result;
-            response.EnsureSuccessStatusCode();
-        }
-    }
-
-    public class FailedTooManyTimeException : Exception
-    {
-    }
-
-    public class NLogAdapter
-    {
-        public void LogFailedCount(string message)
-        {
-            var logger = NLog.LogManager.GetCurrentClassLogger();
-            logger.Info(message);
-        }
-    }
-
-    public class OtpApiService
-    {
-        private readonly HttpClient _httpClient = new HttpClient { BaseAddress = new Uri("http://joey.dev/") };
-
-        public string GetCurrentOtp(string account)
-        {
-            var response = _httpClient
-                .PostAsJsonAsync("api/otps", account).Result;
-            var currentOtp = response.IsSuccessStatusCode
-                ? response.Content.ReadAsAsync<string>().Result
-                : throw new Exception($"Get OTP web api error, accountId:{account}");
-            return currentOtp;
-        }
-    }
-
-    public class ProfileRepository
-    {
-        public string GetPasswordFromDb(string account)
-        {
-            string profilePassword;
-            var connectionString = "my connection string";
-            var spName = "spGetUserPassword";
-            using (var connection = new SqlConnection(connectionString))
-            {
-                profilePassword = connection.Query<string>(spName,
-                    new { Id = account },
-                    commandType: CommandType.StoredProcedure).SingleOrDefault();
-            }
-
-            return profilePassword;
-        }
-    }
-
-    public class SHA256Adapter
-    {
-        public string GetHashPassword(string password)
-        {
-            var crypt = new SHA256Managed();
-            var hash = new StringBuilder();
-            var crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(password));
-            foreach (var theByes in crypto)
-            {
-                hash.Append(theByes.ToString("x2"));
-            }
-
-            var hashPassword = hash.ToString();
-            return hashPassword;
-        }
-    }
-
-    public class SlackAdapter
-    {
-        public void Notify(string message)
-        {
-            var slackClient = new SlackClient("my api token");
-            slackClient.PostMessage(resp => { }, "my channel", message, "my bot name");
         }
     }
 }
