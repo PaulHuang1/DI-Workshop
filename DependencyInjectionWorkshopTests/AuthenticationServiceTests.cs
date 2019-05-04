@@ -10,26 +10,66 @@ namespace DependencyInjectionWorkshopTests
     [TestFixture]
     public class AuthenticationServiceTests
     {
+        private const string DefaultAccount = "joey";
+        private const string DefaultHashedPassword = "my hashed password";
+        private const string DefaultOtp = "123456";
+        private const string DefaultPassword = "pw";
+        private AuthenticationService _authenticationService;
+        private IFailedCounter _failedCounter;
+        private IHash _hash;
+        private ILogger _logger;
+        private INotification _notification;
+        private IOtp _otp;
+        private IProfile _profile;
+
         [Test]
         public void is_valid()
         {
-            var profile = Substitute.For<IProfile>();
-            var otp = Substitute.For<IOtp>();
-            var hash = Substitute.For<IHash>();
-            var notification = Substitute.For<INotification>();
-            var failedCounter = Substitute.For<IFailedCounter>();
-            var logger = Substitute.For<ILogger>();
+            GivenPassword(DefaultAccount, DefaultHashedPassword);
+            GivenHash(DefaultPassword, DefaultHashedPassword);
+            GivenOtp(DefaultAccount, DefaultOtp);
 
-            var authenticationService =
-                new AuthenticationService(failedCounter, logger, otp, profile, hash, notification);
+            var isValid = WhenVerify(DefaultAccount, DefaultPassword, DefaultOtp);
 
-            profile.GetPassword("joey").ReturnsForAnyArgs("my hashed password");
-            hash.GetHash("pw").ReturnsForAnyArgs("my hashed password");
-            otp.GetOtp("joey").ReturnsForAnyArgs("123456");
+            ShouldBeValid(isValid);
+        }
 
-            var isValid = authenticationService.Verify("joey", "pw", "123456");
+        [SetUp]
+        public void Setup()
+        {
+            _profile = Substitute.For<IProfile>();
+            _otp = Substitute.For<IOtp>();
+            _hash = Substitute.For<IHash>();
+            _notification = Substitute.For<INotification>();
+            _failedCounter = Substitute.For<IFailedCounter>();
+            _logger = Substitute.For<ILogger>();
 
+            _authenticationService = new AuthenticationService(_failedCounter, _logger, _otp, _profile, _hash, _notification);
+        }
+
+        private static void ShouldBeValid(bool isValid)
+        {
             Assert.IsTrue(isValid);
+        }
+
+        private void GivenHash(string password, string hashedPassword)
+        {
+            _hash.GetHash(password).ReturnsForAnyArgs(hashedPassword);
+        }
+
+        private void GivenOtp(string account, string otp)
+        {
+            _otp.GetOtp(account).ReturnsForAnyArgs(otp);
+        }
+
+        private void GivenPassword(string account, string hashedPassword)
+        {
+            _profile.GetPassword(account).ReturnsForAnyArgs(hashedPassword);
+        }
+
+        private bool WhenVerify(string account, string password, string otp)
+        {
+            return _authenticationService.Verify(account, password, otp);
         }
     }
 }
