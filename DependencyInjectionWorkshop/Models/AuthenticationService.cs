@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using Dapper;
+using DependencyInjectionWorkshop.Exceptions;
 using NLog;
 using SlackAPI;
 
@@ -123,9 +124,5 @@ namespace DependencyInjectionWorkshop.Models
             var resetResponse = new HttpClient { BaseAddress = new Uri("http://joey.dev") }.PostAsJsonAsync("api/FailedCounter/Reset", account).Result;
             resetResponse.EnsureSuccessStatusCode();
         }
-    }
-
-    public class FailedTooManyTimesException : Exception
-    {
     }
 }
