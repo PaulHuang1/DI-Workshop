@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using Dapper;
+using SlackAPI;
 
 namespace DependencyInjectionWorkshop.Models
 {
@@ -42,7 +43,15 @@ namespace DependencyInjectionWorkshop.Models
                 currentOtp = response.Content.ReadAsAsync<string>().Result;
             }
 
-            return passwordFromDb == hashedPassword && otp == currentOtp;
+            if (passwordFromDb == hashedPassword && otp == currentOtp)
+            {
+                return true;
+            }
+
+            var slackClient = new SlackClient("my token");
+            var message = $"account: {account} verify failed.";
+            slackClient.PostMessage(resp => { }, "my channel", message, "my bot name");
+            return false;
         }
     }
 }
