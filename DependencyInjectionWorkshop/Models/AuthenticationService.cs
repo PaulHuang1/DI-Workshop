@@ -35,18 +35,22 @@ namespace DependencyInjectionWorkshop.Models
                 hashedPassword = builder.ToString();
             }
 
-            string currentOtp;
-            using (var httpClient = new HttpClient { BaseAddress = new Uri("http://joey.dev") })
-            {
-                var response = httpClient.PostAsJsonAsync("api/otps", account).Result;
-                response.EnsureSuccessStatusCode();
-                currentOtp = response.Content.ReadAsAsync<string>().Result;
-            }
+            var httpClient = new HttpClient { BaseAddress = new Uri("http://joey.dev") };
+
+            var response = httpClient.PostAsJsonAsync("api/otps", account).Result;
+            response.EnsureSuccessStatusCode();
+            var currentOtp = response.Content.ReadAsAsync<string>().Result;
 
             if (passwordFromDb == hashedPassword && otp == currentOtp)
             {
+                var resetResponse = httpClient.PostAsJsonAsync("api/FailedCounter/Reset", account).Result;
+                resetResponse.EnsureSuccessStatusCode();
+
                 return true;
             }
+
+            var addFailedResponse = httpClient.PostAsJsonAsync("api/FailedCounter/Add", account).Result;
+            addFailedResponse.EnsureSuccessStatusCode();
 
             var slackClient = new SlackClient("my token");
             var message = $"account: {account} verify failed.";
