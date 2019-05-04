@@ -77,6 +77,18 @@ namespace DependencyInjectionWorkshopTests
             LogShouldContains(DefaultAccountId, DefaultFailedCount);
         }
 
+        [Test]
+        public void reset_failed_count_when_valid()
+        {
+            WhenValid();
+            ShouldResetFailedCounter();
+        }
+
+        private void ShouldResetFailedCounter()
+        {
+            _failedCounter.Received(1).Reset(Arg.Any<string>());
+        }
+
         private static void ShouldBeInvalid(bool isValid)
         {
             Assert.IsFalse(isValid);
