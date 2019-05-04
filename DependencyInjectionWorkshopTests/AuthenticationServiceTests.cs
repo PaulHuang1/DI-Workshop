@@ -24,6 +24,13 @@ namespace DependencyInjectionWorkshopTests
         private IProfile _profile;
 
         [Test]
+        public void add_failed_count_when_verify_invalid()
+        {
+            WhenInvalid();
+            ShouldBeAddFailedCount();
+        }
+
+        [Test]
         public void is_invalid_when_wrong_otp()
         {
             _profile.GetPassword(DefaultAccount).ReturnsForAnyArgs(DefaultHashedPassword);
@@ -97,6 +104,11 @@ namespace DependencyInjectionWorkshopTests
         private void GivenFailedCount()
         {
             _failedCounter.Get(DefaultAccount).ReturnsForAnyArgs(DefaultFailedCount);
+        }
+
+        private void ShouldBeAddFailedCount()
+        {
+            _failedCounter.Received(1).Add(DefaultAccount);
         }
 
         private void ShouldBeLogAndContains(string account, int failedCount)
