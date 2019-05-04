@@ -14,6 +14,16 @@ namespace DependencyInjectionWorkshop.Models
     {
         public bool Verify(string account, string password, string otp)
         {
+            var httpClient = new HttpClient { BaseAddress = new Uri("http://joey.dev") };
+
+            var isLockedResponse = httpClient.PostAsJsonAsync("api/FailedCounter/IsLocked", account).Result;
+            isLockedResponse.EnsureSuccessStatusCode();
+            var isLocked = isLockedResponse.Content.ReadAsAsync<bool>().Result;
+            if (isLocked)
+            {
+                throw new FailedTooManyTimesException();
+            }
+
             string passwordFromDb;
             using (var connection = new SqlConnection("my connection string"))
             {
@@ -35,8 +45,6 @@ namespace DependencyInjectionWorkshop.Models
                 hashedPassword = builder.ToString();
             }
 
-            var httpClient = new HttpClient { BaseAddress = new Uri("http://joey.dev") };
-
             var response = httpClient.PostAsJsonAsync("api/otps", account).Result;
             response.EnsureSuccessStatusCode();
             var currentOtp = response.Content.ReadAsAsync<string>().Result;
@@ -57,5 +65,9 @@ namespace DependencyInjectionWorkshop.Models
             slackClient.PostMessage(resp => { }, "my channel", message, "my bot name");
             return false;
         }
+    }
+
+    public class FailedTooManyTimesException : Exception
+    {
     }
 }
