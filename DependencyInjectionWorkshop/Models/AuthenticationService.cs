@@ -15,32 +15,69 @@ namespace DependencyInjectionWorkshop.Models
         {
             var httpClient = new HttpClient() {BaseAddress = new Uri("http://joey.dev/")};
 
-            var isLockedResponse = httpClient.PostAsJsonAsync("api/failedCounter/IsLocked", accountId).Result;
-            isLockedResponse.EnsureSuccessStatusCode();
-            if (isLockedResponse.Content.ReadAsAsync<bool>().Result)
+            CheckAccountIsLocked(accountId, httpClient);
+
+            var passwordFromDb = GetPasswordFromDb(accountId);
+
+            var hashedPassword = GetHashedPassword(password);
+
+            var currentOtp = GetCurrentOtp(accountId, httpClient);
+
+            if (hashedPassword == passwordFromDb && otp == currentOtp)
             {
-                throw new FailedTooManyTimesException();
-            }
+                ResetFailedCounter(accountId, httpClient);
 
-            string passwordFormDb;
-            using (var connection = new SqlConnection("my connection string"))
+                return true;
+            }
+            else
             {
-                var password1 = connection.Query<string>("spGetUserPassword", new {Id = accountId},
-                    commandType: CommandType.StoredProcedure).SingleOrDefault();
+                AddFailedCount(accountId, httpClient);
 
-                passwordFormDb = password1;
+                var failedCount = GetFailedCount(accountId, httpClient);
+                LogFailedCount($"accountId:{accountId} failed times:{failedCount}");
+
+                Notify($"accountId:{accountId} verify failed");
+
+                return false;
             }
+        }
 
-            var crypt = new System.Security.Cryptography.SHA256Managed();
-            var hash = new StringBuilder();
-            var crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(password));
-            foreach (var theByte in crypto)
-            {
-                hash.Append(theByte.ToString("x2"));
-            }
+        private static void Notify(string message)
+        {
+            var slackClient = new SlackClient("my api token");
+            slackClient.PostMessage(r => { }, "my channel", message, "my bot name");
+        }
 
-            var hashedPassword = hash.ToString();
+        private static void LogFailedCount(string message)
+        {
+            var logger = NLog.LogManager.GetCurrentClassLogger();
+            logger.Info(message);
+        }
 
+        private static int GetFailedCount(string accountId, HttpClient httpClient)
+        {
+            var failedCountResponse =
+                httpClient.PostAsJsonAsync("api/failedCounter/GetFailedCount", accountId).Result;
+            failedCountResponse.EnsureSuccessStatusCode();
+
+            var failedCount = failedCountResponse.Content.ReadAsAsync<int>().Result;
+            return failedCount;
+        }
+
+        private static void AddFailedCount(string accountId, HttpClient httpClient)
+        {
+            var addFailedCountResponse = httpClient.PostAsJsonAsync("api/failedCounter/Add", accountId).Result;
+            addFailedCountResponse.EnsureSuccessStatusCode();
+        }
+
+        private static void ResetFailedCounter(string accountId, HttpClient httpClient)
+        {
+            var resetResponse = httpClient.PostAsJsonAsync("api/failedCounter/Reset", accountId).Result;
+            resetResponse.EnsureSuccessStatusCode();
+        }
+
+        private static string GetCurrentOtp(string accountId, HttpClient httpClient)
+        {
             var response = httpClient.PostAsJsonAsync("api/otps", accountId).Result;
             string currentOtp;
             if (response.IsSuccessStatusCode)
@@ -52,31 +89,42 @@ namespace DependencyInjectionWorkshop.Models
                 throw new Exception($"web api error, accountId:{accountId}");
             }
 
-            if (hashedPassword == passwordFormDb && otp == currentOtp)
-            {
-                var resetResponse = httpClient.PostAsJsonAsync("api/failedCounter/Reset", accountId).Result;
-                resetResponse.EnsureSuccessStatusCode();
+            return currentOtp;
+        }
 
-                return true;
+        private static string GetHashedPassword(string password)
+        {
+            var crypt = new System.Security.Cryptography.SHA256Managed();
+            var hash = new StringBuilder();
+            var crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(password));
+            foreach (var theByte in crypto)
+            {
+                hash.Append(theByte.ToString("x2"));
             }
-            else
+
+            var hashedPassword = hash.ToString();
+            return hashedPassword;
+        }
+
+        private static string GetPasswordFromDb(string accountId)
+        {
+            string passwordFromDb;
+            using (var connection = new SqlConnection("my connection string"))
             {
-                var addFailedCountResponse = httpClient.PostAsJsonAsync("api/failedCounter/Add", accountId).Result;
-                addFailedCountResponse.EnsureSuccessStatusCode();
+                passwordFromDb = connection.Query<string>("spGetUserPassword", new {Id = accountId},
+                    commandType: CommandType.StoredProcedure).SingleOrDefault();
+            }
 
-                var failedCountResponse =
-                    httpClient.PostAsJsonAsync("api/failedCounter/GetFailedCount", accountId).Result;
-                failedCountResponse.EnsureSuccessStatusCode();
+            return passwordFromDb;
+        }
 
-                var failedCount = failedCountResponse.Content.ReadAsAsync<int>().Result;
-                var logger = NLog.LogManager.GetCurrentClassLogger();
-                logger.Info($"accountId:{accountId} failed times:{failedCount}");
-
-                string message = $"accountId:{accountId} verify failed";
-                var slackClient = new SlackClient("my api token");
-                slackClient.PostMessage(r => { }, "my channel", message, "my bot name");
-
-                return false;
+        private static void CheckAccountIsLocked(string accountId, HttpClient httpClient)
+        {
+            var isLockedResponse = httpClient.PostAsJsonAsync("api/failedCounter/IsLocked", accountId).Result;
+            isLockedResponse.EnsureSuccessStatusCode();
+            if (isLockedResponse.Content.ReadAsAsync<bool>().Result)
+            {
+                throw new FailedTooManyTimesException();
             }
         }
     }
