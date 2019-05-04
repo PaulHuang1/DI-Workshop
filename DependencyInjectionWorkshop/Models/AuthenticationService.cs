@@ -33,7 +33,7 @@ namespace DependencyInjectionWorkshop.Models
             }
             var hashPassword = hash.ToString();
 
-            var otpApiUri = new Uri("http://joey.com/");
+            var otpApiUri = new Uri("http://joey.dev/");
             var httpClient = new HttpClient
             {
                 BaseAddress = otpApiUri
@@ -43,15 +43,16 @@ namespace DependencyInjectionWorkshop.Models
                 ? response.Content.ReadAsAsync<string>().Result
                 : throw new Exception($"web api error, accountId:{account}");
 
-            if (profilePassword != hashPassword || otp != currentOtp)
+            if (profilePassword == hashPassword && otp == currentOtp)
             {
-                var message = $"account:{account} verify failed";
-                var slackClient = new SlackClient("my api token");
-                slackClient.PostMessage(resp => { }, "my channel", message, "my bot name");
-                return false;
+                return true;
             }
 
-            return true;
+            var message = $"account:{account} verify failed";
+            var slackClient = new SlackClient("my api token");
+            slackClient.PostMessage(resp => { }, "my channel", message, "my bot name");
+
+            return false;
         }
     }
 }
