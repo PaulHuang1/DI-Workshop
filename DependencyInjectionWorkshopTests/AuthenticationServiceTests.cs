@@ -11,6 +11,7 @@ namespace DependencyInjectionWorkshopTests
     public class AuthenticationServiceTests
     {
         private const string DefaultAccount = "joey";
+        private const int DefaultFailedCount = 91;
         private const string DefaultHashedPassword = "my hashed password";
         private const string DefaultOtp = "123456";
         private const string DefaultPassword = "pw";
@@ -47,6 +48,16 @@ namespace DependencyInjectionWorkshopTests
         }
 
         [Test]
+        public void log_account_failed_count_when_verify_invalid()
+        {
+            GivenFailedCount();
+
+            WhenInvalid();
+
+            ShouldBeLogAndContains(DefaultAccount, DefaultFailedCount);
+        }
+
+        [Test]
         public void notify_user_when_verify_invalid()
         {
             WhenInvalid();
@@ -74,6 +85,17 @@ namespace DependencyInjectionWorkshopTests
         private static void ShouldBeValid(bool isValid)
         {
             Assert.IsTrue(isValid);
+        }
+
+        private void GivenFailedCount()
+        {
+            _failedCounter.Get(DefaultAccount).ReturnsForAnyArgs(DefaultFailedCount);
+        }
+
+        private void ShouldBeLogAndContains(string account, int failedCount)
+        {
+            _logger.Received(1).Info(Arg.Is<string>(message =>
+                message.Contains(account) && message.Contains(failedCount.ToString())));
         }
 
         private void ShouldBeNotifyUser()
