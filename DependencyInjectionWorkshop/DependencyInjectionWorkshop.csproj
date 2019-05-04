@@ -75,6 +75,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Adapters\NLoggerAdapter.cs" />
     <Compile Include="Adapters\SHA256Adapter.cs" />
     <Compile Include="Adapters\SlackAdapter.cs" />
     <Compile Include="Apis\FailedCounterApi.cs" />
