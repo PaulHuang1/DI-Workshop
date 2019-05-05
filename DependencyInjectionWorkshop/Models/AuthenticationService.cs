@@ -1,8 +1,32 @@
-﻿using DependencyInjectionWorkshop.Adapters;
+﻿using System;
+using DependencyInjectionWorkshop.Adapters;
 using DependencyInjectionWorkshop.Repositories;
 
 namespace DependencyInjectionWorkshop.Models
 {
+    public class ApiUserDecorator:AuthenticationBaseDecorator
+    {
+        private readonly IApiUserQuota _apiUserQuota;
+
+        public ApiUserDecorator(IAuthentication authentication, IApiUserQuota apiUserQuota) : base(authentication)
+        {
+            _apiUserQuota = apiUserQuota;
+        }
+
+        private void AddApiUseTimes(string accountId)
+        {
+            _apiUserQuota.Add(accountId);
+        }
+
+        public override bool Verify(string accountId, string password, string otp)
+        {
+            var isValid = base.Verify(accountId, password, otp);
+            AddApiUseTimes(accountId);
+
+            return isValid;
+        }
+    }
+
     public class AuthenticationService : IAuthentication
     {
         private readonly IProfile _profile;
@@ -24,14 +48,24 @@ namespace DependencyInjectionWorkshop.Models
 
             var currentOtp = _otpService.GetCurrentOtp(accountId);
 
-            if (hashedPassword == passwordFromDb && otp == currentOtp)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            var isValid = hashedPassword == passwordFromDb && otp == currentOtp;
+
+            //_apiUserDecorator.AddApiUseTimes(accountId);
+
+            return isValid;
+        }
+    }
+
+    public interface IApiUserQuota
+    {
+        void Add(string accountId);
+    }
+
+    public class ApiUserQuota : IApiUserQuota
+    {
+        public void Add(string accountId)
+        {
+            Console.WriteLine($"ApiUserQuota.Add({accountId})");
         }
     }
 }
