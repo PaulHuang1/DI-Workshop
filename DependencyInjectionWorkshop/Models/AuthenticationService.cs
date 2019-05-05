@@ -4,7 +4,7 @@ using DependencyInjectionWorkshop.Repositories;
 
 namespace DependencyInjectionWorkshop.Models
 {
-    public class ApiUserDecorator:AuthenticationBaseDecorator
+    public class ApiUserDecorator : AuthenticationBaseDecorator
     {
         private readonly IApiUserQuota _apiUserQuota;
 
@@ -51,6 +51,7 @@ namespace DependencyInjectionWorkshop.Models
             var isValid = hashedPassword == passwordFromDb && otp == currentOtp;
 
             //_apiUserDecorator.AddApiUseTimes(accountId);
+            //_notificationDecorator.JoeyIsCute();
 
             return isValid;
         }
