@@ -3,22 +3,20 @@ using DependencyInjectionWorkshop.Models;
 
 namespace DependencyInjectionWorkshop.Decorators
 {
-    public class NotificationDecorator : IAuthentication
+    public class NotificationDecorator : AuthenticationBaseDecorator
     {
-        private readonly IAuthentication _authentication;
         private readonly INotification _notification;
 
         public NotificationDecorator(
             IAuthentication authentication,
-            INotification notification)
+            INotification notification) : base(authentication)
         {
-            _authentication = authentication;
             _notification = notification;
         }
 
-        public bool Verify(string account, string password, string otp)
+        public override bool Verify(string account, string password, string otp)
         {
-            var isValid = _authentication.Verify(account, password, otp);
+            var isValid = base.Verify(account, password, otp);
 
             if (!isValid)
             {

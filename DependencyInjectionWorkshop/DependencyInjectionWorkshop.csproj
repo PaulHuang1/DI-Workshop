@@ -85,6 +85,7 @@
     <Compile Include="ApiServices\IFailedCounter.cs" />
     <Compile Include="ApiServices\IOtp.cs" />
     <Compile Include="ApiServices\OtpApiService.cs" />
+    <Compile Include="Decorators\AuthenticationBaseDecorator.cs" />
     <Compile Include="Decorators\FailedCounterDecorator.cs" />
     <Compile Include="Decorators\LogDecorator.cs" />
     <Compile Include="Decorators\NotificationDecorator.cs" />

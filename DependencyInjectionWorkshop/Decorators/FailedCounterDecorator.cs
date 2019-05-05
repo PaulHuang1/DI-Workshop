@@ -4,27 +4,25 @@ using DependencyInjectionWorkshop.Models;
 
 namespace DependencyInjectionWorkshop.Decorators
 {
-    public class FailedCounterDecorator : IAuthentication
+    public class FailedCounterDecorator : AuthenticationBaseDecorator
     {
-        private readonly IAuthentication _authentication;
         private readonly IFailedCounter _failedCounter;
 
         public FailedCounterDecorator(
             IAuthentication authentication,
-            IFailedCounter failedCounter)
+            IFailedCounter failedCounter) : base(authentication)
         {
-            _authentication = authentication;
             _failedCounter = failedCounter;
         }
 
-        public bool Verify(string account, string password, string otp)
+        public override bool Verify(string account, string password, string otp)
         {
             if (_failedCounter.CheckAccountIsLocked(account))
             {
                 throw new FailedTooManyTimeException();
             }
 
-            var isValid = _authentication.Verify(account, password, otp);
+            var isValid = base.Verify(account, password, otp);
 
             if (isValid)
             {
