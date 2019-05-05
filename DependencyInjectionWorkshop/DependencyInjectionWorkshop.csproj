@@ -81,7 +81,9 @@
     <Compile Include="Adapters\NLogAdapter.cs" />
     <Compile Include="Adapters\SHA256Adapter.cs" />
     <Compile Include="Adapters\SlackAdapter.cs" />
+    <Compile Include="ApiServices\ApiUserQuota.cs" />
     <Compile Include="ApiServices\FailedCounter.cs" />
+    <Compile Include="ApiServices\IApiUserQuota.cs" />
     <Compile Include="ApiServices\IFailedCounter.cs" />
     <Compile Include="ApiServices\IOtp.cs" />
     <Compile Include="ApiServices\OtpApiService.cs" />
@@ -90,6 +92,7 @@
     <Compile Include="Decorators\LogDecorator.cs" />
     <Compile Include="Decorators\NotificationDecorator.cs" />
     <Compile Include="Exceptions\FailedTooManyTimeException.cs" />
+    <Compile Include="Models\ApiUserDecorator.cs" />
     <Compile Include="Models\AuthenticationService.cs" />
     <Compile Include="Models\IAuthentication.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
