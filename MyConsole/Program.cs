@@ -53,7 +53,7 @@ namespace MyConsole
             containerBuilder.RegisterType<FakeOtp>()
                 .As<IOtp>();
 
-            containerBuilder.RegisterType<FakeHash>()
+            containerBuilder.RegisterType<Sha256Adapter>()
                 .As<IHash>();
 
             containerBuilder.RegisterType<FakeProfile>()
@@ -76,7 +76,7 @@ namespace MyConsole
             containerBuilder.RegisterType<AuthenticationService>().As<IAuthentication>();
 
             containerBuilder.RegisterDecorator<NotificationDecorator, IAuthentication>();
-            containerBuilder.RegisterDecorator<FailedCounterDecorator, IAuthentication>();
+            //containerBuilder.RegisterDecorator<FailedCounterDecorator, IAuthentication>();
             containerBuilder.RegisterDecorator<LogDecorator, IAuthentication>();
 
             _container = containerBuilder.Build();
